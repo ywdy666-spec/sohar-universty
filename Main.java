@@ -1,0 +1,454 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.*;
+import java.awt.event.*;
+
+public class Main extends JPanel {
+
+    private final javax.swing.Timer timer;
+
+    private int currentSlide = 0;
+    private double transition = 1.0;
+    private int direction = 1;
+    private double animationTime = 0;
+
+    private JButton nextButton;
+    private JButton prevButton;
+
+    private final Color navy = new Color(0, 43, 61);
+    private final Color teal = new Color(0, 82, 105);
+    private final Color cyan = new Color(91, 225, 240);
+    private final Color white = new Color(250, 253, 255);
+
+    private final String[] titles = {
+            "جامعة صحار",
+            "نبذة عن الجامعة",
+            "رحلة التعلّم",
+            "الحياة الجامعية",
+            "نحو المستقبل",
+            "رسالتنا مستمرة"
+    };
+
+    private final String[] subtitles = {
+            "SOHAR UNIVERSITY",
+            "بيئة تصنع المعرفة والطموح",
+            "معرفة • مهارة • ابتكار",
+            "تجربة تتجاوز قاعات الدراسة",
+            "أفكار اليوم، إنجازات الغد",
+            "هنا تبدأ الحكاية"
+    };
+
+    private final String[][] descriptions = {
+            {
+                    "مرحبًا بكم في جامعة صحار",
+                    "حيث يلتقي الطموح بالتعلّم",
+                    "وتبدأ الأفكار رحلتها نحو الإنجاز"
+            },
+            {
+                    "مؤسسة للتعليم العالي في سلطنة عُمان",
+                    "تجمع بين التعلّم والتطوير والبحث",
+                    "وتسعى إلى إعداد الطلبة للمستقبل"
+            },
+            {
+                    "اكتشاف مجالات معرفية جديدة",
+                    "تطوير التفكير النقدي وحل المشكلات",
+                    "تحويل المعرفة إلى مهارات عملية"
+            },
+            {
+                    "تعاون، مشاركة، وتبادل للأفكار",
+                    "أنشطة ومبادرات تنمّي المواهب",
+                    "ذكريات وعلاقات تستمر بعد التخرّج"
+            },
+            {
+                    "تقنية وابتكار وريادة",
+                    "مهارات تواكب التغيّرات المتسارعة",
+                    "وطموحات تسهم في خدمة المجتمع"
+            },
+            {
+                    "كل بداية تحمل فرصة جديدة",
+                    "وكل فكرة قد تصنع فرقًا",
+                    "جامعة صحار — نحو آفاق أوسع"
+            }
+    };
+
+    public Main() {
+        setLayout(null);
+        setFocusable(true);
+
+        nextButton = makeButton("التالي  →");
+        prevButton = makeButton("← السابق");
+
+        nextButton.addActionListener(e -> nextSlide());
+        prevButton.addActionListener(e -> previousSlide());
+
+        add(nextButton);
+        add(prevButton);
+
+        timer = new javax.swing.Timer(25, e -> {
+            animationTime += 0.025;
+
+            if (transition < 1.0) {
+                transition += 0.035;
+
+                if (transition > 1.0) {
+                    transition = 1.0;
+                }
+            }
+
+            repaint();
+        });
+
+        timer.start();
+    }
+
+    private JButton makeButton(String text) {
+        JButton b = new JButton(text);
+
+        b.setFont(new Font("Dialog", Font.BOLD, 15));
+        b.setForeground(white);
+        b.setBackground(new Color(0, 104, 128));
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createLineBorder(
+                new Color(91, 225, 240, 150), 1
+        ));
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setOpaque(true);
+
+        return b;
+    }
+
+    @Override
+    public void doLayout() {
+        int w = getWidth();
+        int h = getHeight();
+
+        prevButton.setBounds(30, h - 67, 130, 40);
+        nextButton.setBounds(w - 160, h - 67, 130, 40);
+    }
+
+    private void nextSlide() {
+        if (currentSlide < titles.length - 1 && transition >= 1) {
+            currentSlide++;
+            direction = 1;
+            transition = 0;
+            repaint();
+        }
+    }
+
+    private void previousSlide() {
+        if (currentSlide > 0 && transition >= 1) {
+            currentSlide--;
+            direction = -1;
+            transition = 0;
+            repaint();
+        }
+    }
+
+    private double smooth(double x) {
+        x = Math.max(0, Math.min(1, x));
+        return x * x * (3 - 2 * x);
+    }
+
+    private void centeredText(Graphics2D g, String text,
+                              double centerX, double y) {
+        FontMetrics fm = g.getFontMetrics();
+
+        g.drawString(
+                text,
+                (float) (centerX - fm.stringWidth(text) / 2.0),
+                (float) y
+        );
+    }
+
+    private void drawBackground(Graphics2D g, int w, int h) {
+        g.setPaint(new GradientPaint(
+                0, 0, navy,
+                w, h, teal
+        ));
+        g.fillRect(0, 0, w, h);
+
+        // Animated ambient lights
+        for (int i = 0; i < 5; i++) {
+            double x = w * (0.12 + i * 0.20)
+                    + Math.sin(animationTime * 0.6 + i) * 30;
+
+            double y = h * (0.25 + 0.12 * Math.sin(
+                    animationTime * 0.45 + i * 1.4
+            ));
+
+            float alpha = (float) (
+                    0.025 + 0.025 * (
+                            0.5 + 0.5 * Math.sin(animationTime + i))
+            );
+
+            g.setComposite(AlphaComposite.getInstance(
+                    AlphaComposite.SRC_OVER, alpha
+            ));
+
+            g.setColor(cyan);
+            g.fill(new Ellipse2D.Double(
+                    x - 90, y - 90, 180, 180
+            ));
+        }
+
+        g.setComposite(AlphaComposite.SrcOver);
+
+        // Subtle digital grid
+        g.setColor(new Color(160, 235, 245, 13));
+        g.setStroke(new BasicStroke(1));
+
+        int spacing = 48;
+
+        for (int x = 0; x < w; x += spacing) {
+            g.drawLine(x, 0, x, h);
+        }
+
+        for (int y = 0; y < h; y += spacing) {
+            g.drawLine(0, y, w, y);
+        }
+
+        // Decorative corner lines
+        g.setColor(new Color(91, 225, 240, 100));
+        g.setStroke(new BasicStroke(2));
+
+        g.drawLine(28, 35, 110, 35);
+        g.drawLine(28, 35, 28, 95);
+
+        g.drawLine(w - 28, h - 105, w - 110, h - 105);
+        g.drawLine(w - 28, h - 105, w - 28, h - 165);
+    }
+
+    private void drawDecorativeSymbol(Graphics2D g,
+                                      double cx, double cy,
+                                      double scale, double alpha) {
+        g.setComposite(AlphaComposite.getInstance(
+                AlphaComposite.SRC_OVER,
+                (float) alpha
+        ));
+
+        g.setColor(cyan);
+        g.setStroke(new BasicStroke(
+                (float) (2 * scale),
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND
+        ));
+
+        double radius = 42 * scale;
+
+        g.draw(new Ellipse2D.Double(
+                cx - radius, cy - radius,
+                radius * 2, radius * 2
+        ));
+
+        for (int i = 0; i < 8; i++) {
+            double a = animationTime * 0.15
+                    + i * Math.PI / 4;
+
+            double x1 = cx + Math.cos(a) * radius * 0.65;
+            double y1 = cy + Math.sin(a) * radius * 0.65;
+
+            double x2 = cx + Math.cos(a) * radius * 1.35;
+            double y2 = cy + Math.sin(a) * radius * 1.35;
+
+            g.draw(new Line2D.Double(x1, y1, x2, y2));
+        }
+
+        g.setColor(white);
+        g.fill(new Ellipse2D.Double(
+                cx - 4 * scale, cy - 4 * scale,
+                8 * scale, 8 * scale
+        ));
+
+        g.setComposite(AlphaComposite.SrcOver);
+    }
+
+    @Override
+    protected void paintComponent(Graphics graphics) {
+        super.paintComponent(graphics);
+
+        Graphics2D g = (Graphics2D) graphics.create();
+
+        g.setRenderingHint(
+                RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON
+        );
+
+        g.setRenderingHint(
+                RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+        );
+
+        int w = getWidth();
+        int h = getHeight();
+
+        drawBackground(g, w, h);
+
+        double p = smooth(transition);
+        double offset = (1 - p) * 65 * direction;
+
+        Graphics2D slide = (Graphics2D) g.create();
+
+        slide.translate(0, offset);
+
+        slide.setComposite(AlphaComposite.getInstance(
+                AlphaComposite.SRC_OVER,
+                (float) p
+        ));
+
+        double cx = w / 2.0;
+
+        double symbolY = h * 0.23;
+
+        drawDecorativeSymbol(
+                slide, cx, symbolY,
+                Math.min(w / 800.0, h / 650.0),
+                p
+        );
+
+        // Small section label
+        slide.setFont(new Font(
+                "SansSerif", Font.BOLD, 12
+        ));
+
+        slide.setColor(cyan);
+
+        String section = String.format(
+                "S O H A R   U N I V E R S I T Y     /     %02d",
+                currentSlide + 1
+        );
+
+        centeredText(slide, section, cx, h * 0.39);
+
+        // Main title
+        int titleSize = Math.max(
+                27, Math.min(45, w / 16)
+        );
+
+        slide.setFont(new Font(
+                "Dialog", Font.BOLD, titleSize
+        ));
+
+        slide.setColor(white);
+
+        centeredText(
+                slide, titles[currentSlide],
+                cx, h * 0.49
+        );
+
+        // Subtitle
+        slide.setFont(new Font(
+                "Dialog", Font.PLAIN,
+                Math.max(16, w / 42)
+        ));
+
+        slide.setColor(cyan);
+
+        centeredText(
+                slide, subtitles[currentSlide],
+                cx, h * 0.55
+        );
+
+        // Description lines reveal one by one
+        slide.setFont(new Font(
+                "Dialog", Font.PLAIN,
+                Math.max(15, w / 52)
+        ));
+
+        int firstLineY = (int) (h * 0.64);
+        int lineSpacing = Math.max(29, h / 19);
+
+        for (int i = 0; i < descriptions[currentSlide].length; i++) {
+            double lineProgress = smooth(
+                    (transition - i * 0.13) / 0.55
+            );
+
+            if (lineProgress <= 0) {
+                continue;
+            }
+
+            slide.setComposite(AlphaComposite.getInstance(
+                    AlphaComposite.SRC_OVER,
+                    (float) (p * lineProgress)
+            ));
+
+            slide.setColor(white);
+
+            centeredText(
+                    slide,
+                    descriptions[currentSlide][i],
+                    cx,
+                    firstLineY + i * lineSpacing
+            );
+        }
+
+        slide.dispose();
+
+        // Bottom progress indicator
+        int barWidth = Math.min(360, w - 100);
+        int barX = (w - barWidth) / 2;
+        int barY = h - 91;
+
+        g.setColor(new Color(255, 255, 255, 55));
+        g.fillRoundRect(
+                barX, barY, barWidth, 4, 4, 4
+        );
+
+        g.setColor(cyan);
+
+        int filled = (int) (
+                barWidth * (currentSlide + 1.0) / titles.length
+        );
+
+        g.fillRoundRect(
+                barX, barY, filled, 4, 4, 4
+        );
+
+        g.setFont(new Font(
+                "SansSerif", Font.PLAIN, 12
+        ));
+
+        g.setColor(new Color(235, 248, 252, 200));
+
+        centeredText(
+                g,
+                (currentSlide + 1) + "  /  " + titles.length,
+                w / 2.0,
+                h - 38
+        );
+
+        g.dispose();
+
+        prevButton.setEnabled(
+                currentSlide > 0 && transition >= 1
+        );
+
+        nextButton.setEnabled(
+                currentSlide < titles.length - 1 && transition >= 1
+        );
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame(
+                    "Sohar University | Interactive Presentation"
+            );
+
+            Main presentation = new Main();
+
+            frame.setDefaultCloseOperation(
+                    JFrame.EXIT_ON_CLOSE
+            );
+
+            frame.setContentPane(presentation);
+            frame.setSize(900, 700);
+            frame.setMinimumSize(
+                    new Dimension(650, 550)
+            );
+
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+
+            presentation.requestFocusInWindow();
+        });
+    }
+}
